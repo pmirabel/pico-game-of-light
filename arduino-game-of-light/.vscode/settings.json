@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.txt": "makefile",
+        "__tuple": "cpp",
+        "array": "cpp",
+        "ios": "cpp"
+    }
+}
