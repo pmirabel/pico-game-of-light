@@ -25,10 +25,10 @@ impl GameGrid {
         self.cells = new_cells;
     }
 
-    pub(crate) fn randomize(&mut self, probability_to_live: f32, max_neighbors: u8) {
+    pub(crate) fn randomize(&mut self, probability_to_live: f32) {
         debug!(
-            "randomize with probability_to_live = {} and max_neighbors = {}",
-            probability_to_live, max_neighbors
+            "randomize with probability_to_live = {}",
+            probability_to_live
         );
         let mut random: [u8; WIDTH * HEIGHT] = [0; WIDTH * HEIGHT];
         let mut rng: RoscRng = RoscRng;
@@ -40,7 +40,7 @@ impl GameGrid {
                 if neighbors > 8 {
                     warn!("alive neighbors > 8 at [y{}][x{}]", y, x);
                 }
-                self.cells[y][x] = neighbors < max_neighbors && random[y * x] < thresh as u8;
+                self.cells[y][x] =random[y * x] < thresh as u8;
             }
         });
     }

@@ -4,9 +4,6 @@
 
 use defmt::*;
 use embassy_executor::Spawner;
-use embassy_rp::adc::{Adc, Config};
-use embassy_rp::interrupt;
-use embassy_rp::pac::rosc::regs::Randombit;
 use embassy_time::{Duration, Timer};
 use {defmt_rtt as _, panic_probe as _};
 mod game_grid;
@@ -24,7 +21,7 @@ async fn main(spawner: Spawner) {
     // Create Game of life boardgame
     let mut gol_board: game_grid::GameGrid = Default::default();
 
-    gol_board.randomize(1.0, 4);
+    gol_board.randomize(1.0);
     gol_board.display(true);
 
     // ---- ----"LOOP"---- ---- ----
