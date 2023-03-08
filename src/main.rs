@@ -21,21 +21,26 @@ async fn main(spawner: Spawner) {
     // Create Game of life boardgame
     let mut gol_board: game_grid::GameGrid = Default::default();
 
-    gol_board.randomize(1.0);
+    gol_board.randomize(0.3);
     gol_board.display(true);
 
     // ---- ----"LOOP"---- ---- ----
     // ---- ---- ---- ---- ---- ----
-    unwrap!(spawner.spawn(refresh_gol_board(gol_board, Duration::from_millis(10000))));
+    unwrap!(spawner.spawn(refresh_gol_board(gol_board, Duration::from_millis(1000))));
 }
 
 #[embassy_executor::task]
 async fn refresh_gol_board(mut gg: GameGrid, interval: Duration) {
     loop {
-        gg.update();
-        info!("GOL board updated!");
-        gg.display(true);
+        if !gg.update(){
+            info!("GOL board updated!") ;
+        } else {
+            gg.display(true);
+            info!("GOL did not evolve... Randomize it again :)") ;
+            gg.randomize(0.3);
+        }
 
+        gg.display(true);
         Timer::after(interval).await;
     }
 }

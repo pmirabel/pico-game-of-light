@@ -2,6 +2,7 @@ const WIDTH: usize = 18;
 const HEIGHT: usize = 8;
 
 use core::default;
+use core::hash::{Hash, Hasher,BuildHasherDefault, BuildHasher};
 
 use defmt::*;
 use embassy_rp::{clocks::RoscRng, pac::common::W};
@@ -13,7 +14,7 @@ pub(crate) struct GameGrid {
     heigth_i32: i32,
 }
 impl GameGrid {
-    pub(crate) fn update(&mut self) {
+    pub(crate) fn update(&mut self) -> bool{
         let mut new_cells = [[false; WIDTH]; HEIGHT];
         (0..HEIGHT).for_each(|y| {
             for x in 0..WIDTH {
@@ -22,7 +23,13 @@ impl GameGrid {
                     matches!((self.cells[y][x], neighbors), (true, 2..=3) | (false, 3));
             }
         });
+
+        // Iterates over the rows of both arrays using the iter method and compares each element of the rows using the all method, which returns true if all elements of the row are equal. Finally, the function returns true if all rows are equal.
+        let changes = new_cells.iter().zip( self.cells .iter())
+        .all(|(row1, row2)| row1.iter().zip(row2.iter()).all(|(a, b)| a == b));
+
         self.cells = new_cells;
+        changes
     }
 
     pub(crate) fn randomize(&mut self, probability_to_live: f32) {
@@ -45,6 +52,10 @@ impl GameGrid {
         });
     }
 
+    pub(crate) fn get_hash(&self) ->u64{
+        hash_array(&self.cells)
+    }
+
     pub(crate) fn display(&self, display_neighboor: bool) {
         (0..HEIGHT).for_each(|y| {
             let mut tmp : [u8; WIDTH]= [0;WIDTH];
@@ -63,6 +74,7 @@ impl GameGrid {
                 debug!("{}|", tmp);
             }
         });
+        debug!("HASH:{}",self.get_hash())
     }
 
     fn count_alive_neighbors(&self, x: usize, y: usize) -> u8 {
@@ -97,6 +109,34 @@ impl Default for GameGrid {
             cells: [[false; WIDTH]; HEIGHT],
             width_i32,
             heigth_i32,
+        }
+    }
+}
+
+fn hash_array<T: Hash>(arr: &[T]) -> u64 {
+    let mut hasher = ArrayHasher::new();
+    arr.hash(&mut hasher);
+    hasher.finish()
+}
+
+struct ArrayHasher {
+    state: u64,
+}
+
+impl ArrayHasher {
+    fn new() -> Self {
+        ArrayHasher { state: 0 }
+    }
+}
+
+impl Hasher for ArrayHasher {
+    fn finish(&self) -> u64 {
+        self.state
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        for byte in bytes.iter() {
+            self.state = self.state.wrapping_mul(31).wrapping_add(*byte as u64);
         }
     }
 }
