@@ -6,6 +6,9 @@ use embassy_rp::pio_instr_util;
 use embassy_rp::relocate::RelocatedProgram;
 use smart_leds::RGB8;
 use {defmt_rtt as _, panic_probe as _};
+
+pub(crate) const NUM_LEDS: usize = 144;
+
 pub struct Ws2812<P: PioInstance, S: SmInstance> {
     sm: PioStateMachineInstance<P, S>,
 }
@@ -88,19 +91,18 @@ impl<P: PioInstance, S: SmInstance> Ws2812<P, S> {
             self.sm.wait_push(word).await;
         }
 
-    // I missed a bit from your first post, this doesn't implement the SmartLedsWrite trait.
-    // I have a function called write that does (nearly*) the same thing,
-    // but if you're using some other crate on top, this won't meet the trait bounds. The
-    // fundamental problem is that the trait is blocking, and this is async.
+        // I missed a bit from your first post, this doesn't implement the SmartLedsWrite trait.
+        // I have a function called write that does (nearly*) the same thing,
+        // but if you're using some other crate on top, this won't meet the trait bounds. The
+        // fundamental problem is that the trait is blocking, and this is async.
 
-    // If you wanted to brute force it, you could impl the trait with block_on around the async bits.
-    // Something like this:
-    // for color in colors {
-    //     let word = (u32::from(color.g) << 24) | (u32::from(color.r) << 16) | (u32::from(color.b) << 8);
-    //     block_on(self.sm.wait_push(word).await);
-    // }
+        // If you wanted to brute force it, you could impl the trait with block_on around the async bits.
+        // Something like this:
+        // for color in colors {
+        //     let word = (u32::from(color.g) << 24) | (u32::from(color.r) << 16) | (u32::from(color.b) << 8);
+        //     block_on(self.sm.wait_push(word).await);
+        // }
     }
-
 }
 
 /// Input a value 0 to 255 to get a color value

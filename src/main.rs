@@ -5,7 +5,9 @@
 use defmt::*;
 use embassy_executor::Spawner;
 use embassy_rp::gpio::Pin;
+use embassy_rp::pio::PioInstanceBase;
 use embassy_rp::pio::PioPeripheral;
+use embassy_rp::pio::SmInstanceBase;
 use embassy_time::{Duration, Timer};
 use {defmt_rtt as _, panic_probe as _};
 mod game_grid;
@@ -26,38 +28,18 @@ async fn main(spawner: Spawner) {
 
     // Create Game of life boardgame
     let mut gol_board: game_grid::GameGrid = Default::default();
-
     gol_board.randomize(0.3);
     gol_board.display(true);
 
     // ---- ----"LOOP"---- ---- ----
     // ---- ---- ---- ---- ---- ----
     unwrap!(spawner.spawn(refresh_gol_board(gol_board, Duration::from_millis(1000))));
+
     // LED STUFF
+
     let (_pio0, sm0, _sm1, _sm2, _sm3) = p.PIO0.split();
-
-    // This is the number of leds in the string. Helpfully, the sparkfun thing plus and adafruit
-    // feather boards for the 2040 both have one built in.
-    const NUM_LEDS: usize = 1;
-    let mut data = [RGB8::default(); NUM_LEDS];
-
-    // For the thing plus, use pin 8
-    // For the feather, use pin 16
-    let mut ws2812 = Ws2812::new(sm0, p.PIN_8.degrade());
-
-    // Loop forever making RGB values and pushing them out to the WS2812.
-    loop {
-        for j in 0..(256 * 5) {
-            debug!("New Colors:");
-            (0..NUM_LEDS).for_each(|i| {
-                data[i] = wheel((((i * 256) as u16 / NUM_LEDS as u16 + j as u16) & 255) as u8);
-                debug!("R: {} G: {} B: {}", data[i].r, data[i].g, data[i].b);
-            });
-            ws2812.write(&data).await;
-
-            Timer::after(Duration::from_micros(5)).await;
-        }
-    }
+    let ws2812 = Ws2812::new(sm0, p.PIN_8.degrade());
+    unwrap!(spawner.spawn(refresh_ledstrip(ws2812)));
 }
 
 #[embassy_executor::task]
@@ -73,6 +55,25 @@ async fn refresh_gol_board(mut gg: GameGrid, interval: Duration) {
 
         gg.display(true);
         Timer::after(interval).await;
+    }
+}
+
+#[embassy_executor::task]
+async fn refresh_ledstrip(mut ws2812: Ws2812<PioInstanceBase<0>, SmInstanceBase<0>>) {
+    let mut data = [RGB8::default(); NUM_LEDS];
+
+    // Loop forever making RGB values and pushing them out to the WS2812.
+    loop {
+        for j in 0..(256 * 5) {
+            debug!("New Colors:");
+            (0..NUM_LEDS).for_each(|i| {
+                data[i] = wheel((((i * 256) as u16 / NUM_LEDS as u16 + j as u16) & 255) as u8);
+                debug!("R: {} G: {} B: {}", data[i].r, data[i].g, data[i].b);
+            });
+            ws2812.write(&data).await;
+
+            Timer::after(Duration::from_micros(5)).await;
+        }
     }
 }
 
