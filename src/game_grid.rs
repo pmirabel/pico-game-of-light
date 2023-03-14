@@ -12,6 +12,7 @@ pub(crate) struct GameGrid {
     width_i32: i32,
     heigth_i32: i32,
 }
+
 impl GameGrid {
     pub(crate) fn update(&mut self) -> bool {
         let mut new_cells = [[false; WIDTH]; HEIGHT];

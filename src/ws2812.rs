@@ -15,10 +15,7 @@ pub struct Ws2812<P: PioInstance, S: SmInstance> {
 
 impl<P: PioInstance, S: SmInstance> Ws2812<P, S> {
     pub fn new(mut sm: PioStateMachineInstance<P, S>, pin: gpio::AnyPin) -> Self {
-        // Setup sm0
-
         // prepare the PIO program
-
         let side_set = pio::SideSet::new(false, 1, false);
         let mut a: pio::Assembler<32> = pio::Assembler::new_with_side_set(side_set);
 
@@ -88,6 +85,7 @@ impl<P: PioInstance, S: SmInstance> Ws2812<P, S> {
         for color in colors {
             let word =
                 (u32::from(color.g) << 24) | (u32::from(color.r) << 16) | (u32::from(color.b) << 8);
+
             self.sm.wait_push(word).await;
         }
 
@@ -102,6 +100,14 @@ impl<P: PioInstance, S: SmInstance> Ws2812<P, S> {
         //     let word = (u32::from(color.g) << 24) | (u32::from(color.r) << 16) | (u32::from(color.b) << 8);
         //     block_on(self.sm.wait_push(word).await);
         // }
+
+        // In that case, if the only thing you're doing is rendering something and writing it to a string of ws2812s,
+        // then you'll only block if the render is faster than the pio.
+        // Of course if you're doing other tasks then you'll also stall them whenever the renderer outpaces the pio.
+        // A workaround in the case of the 2040 would be to make use of the second core to handle rendering.
+
+        // The better path forward would be to introduce an async version of the SmartLedsWrite trait.
+        // The downside being the function color problem meaning that anything using said trait also needs to be async.
     }
 }
 

@@ -14,8 +14,24 @@ panic-probe = { version = "0.3", features = ["print-defmt"] }
 embassy-executor = { version = "0.1.0", git = "https://github.com/embassy-rs/embassy", features = ["defmt", "integrated-timers"] }
 embassy-time = { version = "0.1.0", git = "https://github.com/embassy-rs/embassy", features = ["defmt", "defmt-timestamp-uptime"] }
 embassy-rp = { version = "0.1.0", git = "https://github.com/embassy-rs/embassy", features = ["defmt", "unstable-traits", "nightly", "unstable-pac", "time-driver", "pio"] }
-
+embassy-sync = { version = "0.1.0", git = "https://github.com/embassy-rs/embassy"}
 rand_core = "0.6.4"
 smart-leds = "0.3.0"
 pio-proc = "0.2"
 pio = "0.2.1"
+
+[profile.test]
+codegen-units = 1
+debug = 2
+debug-assertions = true
+incremental = false
+opt-level = 3
+overflow-checks = true
+
+[profile.dev]
+codegen-units = 1
+debug = 2
+debug-assertions = true
+incremental = false
+opt-level = 3
+overflow-checks = true
