@@ -19,6 +19,20 @@ use smart_leds::RGB8;
 use crate::game_grid::*;
 use crate::ws2812::*;
 
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
+use embassy_sync::signal::Signal;
+
+struct GameGridMessage {
+    GameGridUpdate: [bool; NUM_LEDS],
+}
+
+struct LedStripMessage {
+    LedStripUpdate: [RGB8; NUM_LEDS],
+}
+
+static GG_SIGNAL: Signal<CriticalSectionRawMutex, GameGridMessage> = Signal::new();
+static LED_SIGNAL: Signal<CriticalSectionRawMutex, LedStripMessage> = Signal::new();
+
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
     // ---- ----SETUP ---- ---- ----
@@ -26,22 +40,28 @@ async fn main(spawner: Spawner) {
     let p = embassy_rp::init(Default::default());
     let (_pio0, sm0, _sm1, _sm2, _sm3) = p.PIO0.split();
 
-    // Create Game of life boardgame
-    let mut gol_board: game_grid::GameGrid = Default::default();
-    gol_board.randomize(0.3);
-    gol_board.display(true);
-
     // Create Ledstrip
     let ws2812 = Ws2812::new(sm0, p.PIN_8.degrade());
 
     // ---- ----"LOOP"---- ---- ----
     // ---- ---- ---- ---- ---- ----
-    unwrap!(spawner.spawn(refresh_gol_board(gol_board, Duration::from_millis(100000))));
+    unwrap!(spawner.spawn(refresh_gol_board(Duration::from_millis(5000))));
+    unwrap!(spawner.spawn(animate_ledstrip()));
     unwrap!(spawner.spawn(refresh_ledstrip(ws2812)));
 }
 
 #[embassy_executor::task]
-async fn refresh_gol_board(mut gg: GameGrid, interval: Duration) {
+async fn refresh_gol_board(interval: Duration) {
+    // Create Game of life boardgame
+    let mut gg: game_grid::GameGrid = Default::default();
+    gg.randomize(1.0);
+    gg.display(true);
+
+    GG_SIGNAL.signal(GameGridMessage {
+        GameGridUpdate: gg.to_bool_arrray(),
+    });
+    Timer::after(interval).await;
+
     loop {
         if !gg.update() {
             info!("GOL board updated!");
@@ -52,61 +72,45 @@ async fn refresh_gol_board(mut gg: GameGrid, interval: Duration) {
             gg.randomize(0.3);
         }
 
-        gg.display(true);
-    Timer::after(interval).await;
+        gg.display(false);
+        GG_SIGNAL.signal(GameGridMessage {
+            GameGridUpdate: gg.to_bool_arrray(),
+        });
+        Timer::after(interval).await;
+    }
+}
+#[embassy_executor::task]
+async fn animate_ledstrip() {
+    loop {
+        let mut ledstrip_msg: LedStripMessage = LedStripMessage {
+        LedStripUpdate: [RGB8::default(); NUM_LEDS],
+        };
+        // receive gg update
+        let  gamegrid_msg = GG_SIGNAL.wait().await;
+        // test purpose
+        let tmp: [u8; NUM_LEDS] = gamegrid_msg.GameGridUpdate.map(|v| if v { 1 } else { 0 });
+        debug!("RECEIVED update of game grid:\n\t\t{}", tmp);
 
+        // do stuff with
+        (0..NUM_LEDS).for_each(|led| {
+            if gamegrid_msg.GameGridUpdate[led] {
+                ledstrip_msg.LedStripUpdate[led] = RGB8::from((15, 0, 0));
+            } else {
+                ledstrip_msg.LedStripUpdate[led] = RGB8::from((0, 15, 0));
+            }
+        });
+        //signal light ledstrip
+        LED_SIGNAL.signal(ledstrip_msg);
     }
 }
 
 #[embassy_executor::task]
 async fn refresh_ledstrip(mut ws2812: Ws2812<PioInstanceBase<0>, SmInstanceBase<0>>) {
-    let mut data = [RGB8::default(); NUM_LEDS];
-    let bright = 60;
-
     // Loop forever making RGB values and pushing them out to the WS2812.
     loop {
-        // "get" new value
-
-        // light
-        for p in bright-2..bright {
-        // for j in 0..(256 * 5) {
-            // debug!("New Colors:");
-            (0..NUM_LEDS).for_each(|i| {
-                data[i] = (p,0,p).into();
-                // data[i] = wheel((((i * 256) as u16 / NUM_LEDS as u16 + j as u16) & 255) as u8);
-                // debug!("R: {} G: {} B: {}", data[i].r, data[i].g, data[i].b);
-            });
-            ws2812.write(&data).await;
-            //TODO: define minimal sleep value
-            Timer::after(Duration::from_millis(10000)).await;
-        }
-        // for p in (bright-2..bright).rev() {
-        //     // for j in 0..(256 * 5) {
-        //         // debug!("New Colors:");
-        //         (0..NUM_LEDS).for_each(|i| {
-        //             data[i] = (p,0,p).into();
-        //             // data[i] = wheel((((i * 256) as u16 / NUM_LEDS as u16 + j as u16) & 255) as u8);
-        //             // debug!("R: {} G: {} B: {}", data[i].r, data[i].g, data[i].b);
-        //         });
-        //         ws2812.write(&data).await;
-        //         Timer::after(Duration::from_millis(100)).await;
-
-        //     }
-
-        }
-    // }
-    // }
+        // light ledstrip with received value
+        ws2812.write(&LED_SIGNAL.wait().await.LedStripUpdate).await;
+        //TODO: define minimal sleep value
+        Timer::after(Duration::from_millis(500)).await;
+    }
 }
-
-// async fn read_all_anaolg_inputs(p: embassy_rp::Peripherals)->[u16;4]{
-//     let irq = interrupt::take!(ADC_IRQ_FIFO);
-//     let mut adc = Adc::new(p.ADC, irq, Config::default());
-//     let mut p26 = p.PIN_26;
-//     let mut p27 = p.PIN_27;
-//     let mut p28 = p.PIN_28;
-
-//     [adc.read(&mut p26).await,
-//     adc.read(&mut p27).await ,
-//     adc.read(&mut p28).await,
-//     adc.read_temperature().await]
-// }

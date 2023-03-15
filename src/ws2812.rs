@@ -7,7 +7,7 @@ use embassy_rp::relocate::RelocatedProgram;
 use smart_leds::RGB8;
 use {defmt_rtt as _, panic_probe as _};
 
-pub(crate) const NUM_LEDS: usize = 144;
+pub(crate) const NUM_LEDS: usize = 136;
 
 pub struct Ws2812<P: PioInstance, S: SmInstance> {
     sm: PioStateMachineInstance<P, S>,
