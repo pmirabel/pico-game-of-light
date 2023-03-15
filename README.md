@@ -96,6 +96,7 @@ graph TD
 - The boilerplate to develop on RP2040 is here : <https://github.com/SupImDos/embassy-rp-skeleton>
 - Use a second Pico as probe : <https://github.com/SupImDos/embassy-rp-skeleton#hardware-setup>
 - Write tests. See below discussion about how to ...
+- Use nightly : `rustup override set nightly`
 
 **Discussion about tests**
 
