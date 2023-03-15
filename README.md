@@ -1,4 +1,4 @@
-# RP2040-game-of-light
+# pico-game-of-light
 
 **:warning: :construction: W.I.P**
 
@@ -6,7 +6,7 @@ Trully lively lighting atmosphere. Bonus: godmode
 
 ![](doc/home_gif.gif)
 
-- [RP2040-game-of-light](#rp2040-game-of-light)
+- [pico-game-of-light](#pico-game-of-light)
   - [1.2. Hardware](#12-hardware)
     - [1.2.1. BOM (bill of material)](#121-bom-bill-of-material)
     - [1.2.2. Schematics](#122-schematics)
