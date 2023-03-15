@@ -1,14 +1,23 @@
-# arduino-game-of-light
+# RP2040-game-of-light
 
-## :warning: :construction: W.I.P.
+**:warning: :construction: W.I.P**
 
 Trully lively lighting atmosphere. Bonus: godmode
 
 ![](doc/home_gif.gif)
 
-## Hardware
+- [RP2040-game-of-light](#rp2040-game-of-light)
+  - [1.2. Hardware](#12-hardware)
+    - [1.2.1. BOM (bill of material)](#121-bom-bill-of-material)
+    - [1.2.2. Schematics](#122-schematics)
+  - [1.3. Software](#13-software)
+    - [1.3.1. Requirements](#131-requirements)
+    - [1.3.2. GOL rules](#132-gol-rules)
+    - [1.3.3. Notes for future me](#133-notes-for-future-me)
 
-### BOM (bill of material)
+## 1.2. Hardware
+
+### 1.2.1. BOM (bill of material)
 
 - MCU : [Raspbery pi pico](https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html)
 - Debug probe [(another raspbery pi pico)](https://github.com/rp-rs/rp2040-project-template/blob/main/debug_probes.md#raspberry-pi-pico)
@@ -17,7 +26,7 @@ Trully lively lighting atmosphere. Bonus: godmode
 - 100 ùF capacitor
 - Basic electronic stuff (breadboard, cable, connectors ...)
 
-### Schematics
+### 1.2.2. Schematics
 
 ```ascii
 
@@ -54,9 +63,9 @@ Trully lively lighting atmosphere. Bonus: godmode
 
 ```
 
-## Software
+## 1.3. Software
 
-### Requirements
+### 1.3.1. Requirements
 
 source : [rp-rs github project requirements](https://github.com/rp-rs/rp2040-project-template#requirements)
 
@@ -67,10 +76,9 @@ source : [rp-rs github project requirements](https://github.com/rp-rs/rp2040-pro
 - A CMSIS-DAP probe. (J-Link and other probes will not work with probe-run)
   - I use a second Pico as a CMSIS-DAP debug probe.
 
-
 To develop with async (embedded) Rust :crab: with [embassy framwework](https://embassy.dev/dev/index.html)
 
-### GOL rules
+### 1.3.2. GOL rules
 
 ```mermaid
 graph TD
@@ -83,14 +91,14 @@ graph TD
     should_born-->|no|dead[cell still dead]
 ```
 
-### Notes for future me
+### 1.3.3. Notes for future me
 
 - The boilerplate to develop on RP2040 is here : <https://github.com/SupImDos/embassy-rp-skeleton>
 - Use a second Pico as probe : <https://github.com/SupImDos/embassy-rp-skeleton#hardware-setup>
 - Write tests. See below discussion about how to ...
 
-
 **Discussion about tests**
+
 - Me
     >Hi all! If this is the right place to ask for advice, please, would you tell me how do you implement test (mainly unit testing, but why not integ too) in your embassy base projects?
 - dirbaio
