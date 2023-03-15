@@ -1,5 +1,5 @@
-const WIDTH: usize = 18;
-const HEIGHT: usize = 8;
+pub(crate) const WIDTH: usize = 17;
+pub(crate) const HEIGHT: usize = 8;
 
 use core::hash::{Hash, Hasher};
 
@@ -44,13 +44,10 @@ impl GameGrid {
         rng.fill_bytes(&mut random);
         let thresh = probability_to_live * u8::MAX as f32;
         (0..HEIGHT).for_each(|y| {
-            for x in 0..WIDTH {
-                let neighbors = self.count_alive_neighbors(x, y);
-                if neighbors > 8 {
-                    warn!("alive neighbors > 8 at [y{}][x{}]", y, x);
-                }
-                self.cells[y][x] = random[y * x] < thresh as u8;
-            }
+            (0..WIDTH).for_each(|x| {
+                // let neighbors = self.count_alive_neighbors(x, y);
+                self.cells[y][x] = random[y * WIDTH + x] < thresh as u8;
+            });
         });
     }
 
