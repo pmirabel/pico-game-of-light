@@ -1,5 +1,7 @@
 # arduino-game-of-light
 
+## :warning: :construction: W.I.P.
+
 Trully lively lighting atmosphere. Bonus: godmode
 
 ![](doc/home_gif.gif)
@@ -45,7 +47,7 @@ Trully lively lighting atmosphere. Bonus: godmode
         │ │┼┼┼┼┼┼│LED│STRIP│┼┼┼┼┼┼┼┼┤▼│
         │▼├┼┼┼┼┼┼┼───┼─────┼┼┼┼┼┼┼┼┼│ │
         │ │┼┼┼┼┼┼┼┼────┼┼┼┼┼┼┼┼┼┼┼┼┼┤▼│
-        │▼├┼┼┼┼┼┼┼│8*18│┼┼┼┼┼┼┼┼┼┼┼┼│ │
+        │▼├┼┼┼┼┼┼┼│8*17│┼┼┼┼┼┼┼┼┼┼┼┼│ │
         │ │┼┼┼┼┼┼┼┼────┼┼┼┼┼┼┼┼┼┼┼┼┼│ │
         └─┴─────────────────────────┴─┘
 
@@ -58,13 +60,12 @@ Trully lively lighting atmosphere. Bonus: godmode
 
 source : [rp-rs github project requirements](https://github.com/rp-rs/rp2040-project-template#requirements)
 
-
 - The standard Rust tooling (cargo, rustup) : eg. `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 - Toolchain support for the cortex-m0+ processors in the rp2040 (thumbv6m-none-eabi) : eg. `rustup target add thumbv6m-none-eabi`
 - [flip-link](https://github.com/knurling-rs/flip-link) - this allows you to detect stack-overflows on the first core, which is the only supported target for now. : eg. `cargo install flip-link`
 - [probe-run](https://github.com/knurling-rs/probe-run). Upstream support for RP2040 was added with version 0.3.1. eg. `cargo install probe-run`
 - A CMSIS-DAP probe. (J-Link and other probes will not work with probe-run)
-  - You can use a second Pico as a CMSIS-DAP debug probe.
+  - I use a second Pico as a CMSIS-DAP debug probe.
 
 
 To develop with async (embedded) Rust :crab: with [embassy framwework](https://embassy.dev/dev/index.html)
@@ -82,6 +83,17 @@ graph TD
     should_born-->|no|dead[cell still dead]
 ```
 
-### Notes
+### Notes for future me
 
-<https://github.com/SupImDos/embassy-rp-skeleton>
+- The boilerplate to develop on RP2040 is here : <https://github.com/SupImDos/embassy-rp-skeleton>
+- Use a second Pico as probe : <https://github.com/SupImDos/embassy-rp-skeleton#hardware-setup>
+- Write tests. See below discussion about how to ...
+
+
+**Discussion about tests**
+- Me
+    >Hi all! If this is the right place to ask for advice, please, would you tell me how do you implement test (mainly unit testing, but why not integ too) in your embassy base projects?
+- dirbaio
+  > if it's hardware-independent logic, so you can run the tests in the host, it's easiest to separate that code into its own crate, and use regular Rust tests
+  > if it's hardware-dependent then there's defmt-test.
+  defmt-test has some limitations though (can't have tests in multiple modules, can't reinitialize hardware between tests) so for some I've ended up doing one binary for each test, and scripting something to flash+run them in succession
