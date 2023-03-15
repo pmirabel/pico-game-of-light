@@ -75,6 +75,16 @@ impl GameGrid {
         debug!("HASH:{}", self.get_hash())
     }
 
+    pub(crate) fn to_bool_arrray(&self) -> [bool; WIDTH * HEIGHT] {
+        let mut array: [bool; WIDTH * HEIGHT] = [false; WIDTH * HEIGHT];
+        (0..HEIGHT).for_each(|y| {
+            (0..WIDTH).for_each(|x| {
+                array[y * WIDTH + x] = self.cells[y][x];
+            });
+        });
+        array
+    }
+
     fn count_alive_neighbors(&self, x: usize, y: usize) -> u8 {
         let mut count = 0;
         for dy in [0, 1, 2] {
