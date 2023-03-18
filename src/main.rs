@@ -16,18 +16,17 @@ use {defmt_rtt as _, panic_probe as _};
 
 use smart_leds::RGB8;
 
-use crate::game_grid::*;
 use crate::ws2812::*;
 
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::signal::Signal;
 
 struct GameGridMessage {
-    GameGridUpdate: [bool; NUM_LEDS],
+    game_grid_update: [bool; NUM_LEDS],
 }
 
 struct LedStripMessage {
-    LedStripUpdate: [RGB8; NUM_LEDS],
+    led_strip_update: [RGB8; NUM_LEDS],
 }
 
 static GG_SIGNAL: Signal<CriticalSectionRawMutex, GameGridMessage> = Signal::new();
@@ -45,7 +44,7 @@ async fn main(spawner: Spawner) {
 
     // ---- ----"LOOP"---- ---- ----
     // ---- ---- ---- ---- ---- ----
-    unwrap!(spawner.spawn(refresh_gol_board(Duration::from_millis(5000))));
+    unwrap!(spawner.spawn(refresh_gol_board(Duration::from_millis(2000))));
     unwrap!(spawner.spawn(animate_ledstrip()));
     unwrap!(spawner.spawn(refresh_ledstrip(ws2812)));
 }
@@ -54,11 +53,11 @@ async fn main(spawner: Spawner) {
 async fn refresh_gol_board(interval: Duration) {
     // Create Game of life boardgame
     let mut gg: game_grid::GameGrid = Default::default();
-    gg.randomize(1.0);
+    gg.randomize(0.42);
     gg.display(true);
 
     GG_SIGNAL.signal(GameGridMessage {
-        GameGridUpdate: gg.to_bool_arrray(),
+        game_grid_update: gg.to_bool_arrray(),
     });
     Timer::after(interval).await;
 
@@ -74,7 +73,7 @@ async fn refresh_gol_board(interval: Duration) {
 
         gg.display(false);
         GG_SIGNAL.signal(GameGridMessage {
-            GameGridUpdate: gg.to_bool_arrray(),
+            game_grid_update: gg.to_bool_arrray(),
         });
         Timer::after(interval).await;
     }
@@ -83,20 +82,20 @@ async fn refresh_gol_board(interval: Duration) {
 async fn animate_ledstrip() {
     loop {
         let mut ledstrip_msg: LedStripMessage = LedStripMessage {
-        LedStripUpdate: [RGB8::default(); NUM_LEDS],
+            led_strip_update: [RGB8::default(); NUM_LEDS],
         };
         // receive gg update
-        let  gamegrid_msg = GG_SIGNAL.wait().await;
+        let gamegrid_msg = GG_SIGNAL.wait().await;
         // test purpose
-        let tmp: [u8; NUM_LEDS] = gamegrid_msg.GameGridUpdate.map(|v| if v { 1 } else { 0 });
+        let tmp: [u8; NUM_LEDS] = gamegrid_msg.game_grid_update.map(|v| if v { 1 } else { 0 });
         debug!("RECEIVED update of game grid:\n\t\t{}", tmp);
 
         // do stuff with
         (0..NUM_LEDS).for_each(|led| {
-            if gamegrid_msg.GameGridUpdate[led] {
-                ledstrip_msg.LedStripUpdate[led] = RGB8::from((15, 0, 0));
+            if gamegrid_msg.game_grid_update[led] {
+                ledstrip_msg.led_strip_update[led] = RGB8::from((15, 0, 15));
             } else {
-                ledstrip_msg.LedStripUpdate[led] = RGB8::from((0, 15, 0));
+                ledstrip_msg.led_strip_update[led] = RGB8::from((0, 0, 15));
             }
         });
         //signal light ledstrip
@@ -109,7 +108,9 @@ async fn refresh_ledstrip(mut ws2812: Ws2812<PioInstanceBase<0>, SmInstanceBase<
     // Loop forever making RGB values and pushing them out to the WS2812.
     loop {
         // light ledstrip with received value
-        ws2812.write(&LED_SIGNAL.wait().await.LedStripUpdate).await;
+        ws2812
+            .write(&LED_SIGNAL.wait().await.led_strip_update)
+            .await;
         //TODO: define minimal sleep value
         Timer::after(Duration::from_millis(500)).await;
     }

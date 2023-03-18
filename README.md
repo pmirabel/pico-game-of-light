@@ -1,5 +1,10 @@
 # pico-game-of-light
 
+https://github.com/sfleischman105/cichlid
+https://github.com/phip1611/ws2818-rgb-led-spi-driver/blob/main/examples/src/bin/strip-moving-lights.rs
+https://github.com/jamesmunns/choreographer/blob/main/Cargo.toml
+https://docs.rs/colorgrad/latest/colorgrad/index.html
+
 **:warning: :construction: W.I.P**
 
 Trully lively lighting atmosphere. Bonus: godmode
@@ -101,7 +106,7 @@ graph TD
 **Discussion about tests**
 
 - Me
-    >Hi all! If this is the right place to ask for advice, please, would you tell me how do you implement test (mainly unit testing, but why not integ too) in your embassy base projects?
+    >...would you tell me how do you implement test (mainly unit testing, but why not integ too) in your embassy based projects?
 - dirbaio
   > if it's hardware-independent logic, so you can run the tests in the host, it's easiest to separate that code into its own crate, and use regular Rust tests
   > if it's hardware-dependent then there's defmt-test.

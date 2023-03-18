@@ -1,4 +1,7 @@
+/// The width of the game grid.
 pub(crate) const WIDTH: usize = 17;
+
+/// The height of the game grid.
 pub(crate) const HEIGHT: usize = 8;
 
 use core::hash::{Hash, Hasher};
@@ -7,13 +10,18 @@ use defmt::*;
 use embassy_rp::clocks::RoscRng;
 use rand_core::RngCore;
 
+/// Represents the game grid with cells.
 pub(crate) struct GameGrid {
+    /// Cells of the game grid. Stored as Row-major order.
     cells: [[bool; WIDTH]; HEIGHT],
-    width_i32: i32,
-    heigth_i32: i32,
 }
 
 impl GameGrid {
+    /// Updates the game grid.
+    ///
+    /// # Returns
+    ///
+    /// Returns `true` if there were any changes, otherwise `false`.
     pub(crate) fn update(&mut self) -> bool {
         let mut new_cells = [[false; WIDTH]; HEIGHT];
         (0..HEIGHT).for_each(|y| {
@@ -34,6 +42,11 @@ impl GameGrid {
         changes
     }
 
+    /// Randomizes the game grid.
+    ///
+    /// # Arguments
+    ///
+    /// * `probability_to_live`: The probability for each cell to be alive.
     pub(crate) fn randomize(&mut self, probability_to_live: f32) {
         debug!(
             "randomize with probability_to_live = {}",
@@ -50,11 +63,20 @@ impl GameGrid {
             });
         });
     }
-
+    /// Computes the hash of the game grid.
+    ///
+    /// # Returns
+    ///
+    /// The hash of the game grid.
     pub(crate) fn get_hash(&self) -> u64 {
         hash_array(&self.cells)
     }
 
+    /// Displays the game grid.
+    ///
+    /// # Arguments
+    ///
+    /// * `display_neighboor`: If set to `true`, displays the number of alive neighbors of each cell.
     pub(crate) fn display(&self, display_neighboor: bool) {
         (0..HEIGHT).for_each(|y| {
             let mut tmp: [u8; WIDTH] = [0; WIDTH];
@@ -75,6 +97,11 @@ impl GameGrid {
         debug!("HASH:{}", self.get_hash())
     }
 
+    /// Converts the game grid to a boolean array.
+    ///
+    /// # Returns
+    ///
+    /// A boolean array representing the game grid.
     pub(crate) fn to_bool_arrray(&self) -> [bool; WIDTH * HEIGHT] {
         let mut array: [bool; WIDTH * HEIGHT] = [false; WIDTH * HEIGHT];
         (0..HEIGHT).for_each(|y| {
@@ -84,7 +111,7 @@ impl GameGrid {
         });
         array
     }
-
+    // Computes the number of alive neighbors of the cell at `(x, y)` position.
     fn count_alive_neighbors(&self, x: usize, y: usize) -> u8 {
         let mut count = 0;
         for dy in [0, 1, 2] {
@@ -97,8 +124,8 @@ impl GameGrid {
                 let ny = i32::try_from(y).unwrap() + dy - 1;
                 if nx >= 0
                     && ny >= 0
-                    && nx < self.width_i32
-                    && ny < self.heigth_i32
+                    && nx < i32::try_from(WIDTH).unwrap()
+                    && ny < i32::try_from(HEIGHT).unwrap()
                     && self.cells[usize::try_from(ny).unwrap()][usize::try_from(nx).unwrap()]
                 {
                     count += 1;
@@ -110,17 +137,27 @@ impl GameGrid {
 }
 
 impl Default for GameGrid {
+    /// Creates a new instance of `GameGrid` with default values (false).
+    ///
+    /// # Returns
+    ///
+    /// A new instance of `GameGrid` with all cells set to `false`.
     fn default() -> Self {
-        let width_i32 = i32::try_from(WIDTH).unwrap();
-        let heigth_i32 = i32::try_from(HEIGHT).unwrap();
         GameGrid {
             cells: [[false; WIDTH]; HEIGHT],
-            width_i32,
-            heigth_i32,
         }
     }
 }
 
+/// Computes the hash of an array.
+///
+/// # Arguments
+///
+/// * `arr`: The array to compute the hash for.
+///
+/// # Returns
+///
+/// The hash of the array.
 fn hash_array<T: Hash>(arr: &[T]) -> u64 {
     let mut hasher = ArrayHasher::new();
     arr.hash(&mut hasher);
@@ -132,6 +169,11 @@ struct ArrayHasher {
 }
 
 impl ArrayHasher {
+    /// Creates a new instance of `ArrayHasher`.
+    ///
+    /// # Returns
+    ///
+    /// A new instance of `ArrayHasher`.
     fn new() -> Self {
         ArrayHasher { state: 0 }
     }
@@ -148,3 +190,17 @@ impl Hasher for ArrayHasher {
         }
     }
 }
+
+// Example
+// fn main() {
+//     let mut game_grid = GameGrid::default();
+//     game_grid.randomize(0.5);
+//     game_grid.display(true);
+//     for i in 0..10 {
+//         let changed = game_grid.update();
+//         game_grid.display(true);
+//         if !changed {
+//             break;
+//         }
+//     }
+// }
