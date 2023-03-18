@@ -14,7 +14,7 @@ mod game_grid;
 mod ws2812;
 use {defmt_rtt as _, panic_probe as _};
 
-use smart_leds::RGB8;
+use cichlid::ColorRGB;
 
 use crate::ws2812::*;
 
@@ -26,7 +26,7 @@ struct GameGridMessage {
 }
 
 struct LedStripMessage {
-    led_strip_update: [RGB8; NUM_LEDS],
+    led_strip_update: [ColorRGB; NUM_LEDS],
 }
 
 static GG_SIGNAL: Signal<CriticalSectionRawMutex, GameGridMessage> = Signal::new();
@@ -82,7 +82,7 @@ async fn refresh_gol_board(interval: Duration) {
 async fn animate_ledstrip() {
     loop {
         let mut ledstrip_msg: LedStripMessage = LedStripMessage {
-            led_strip_update: [RGB8::default(); NUM_LEDS],
+            led_strip_update: [ColorRGB::default(); NUM_LEDS],
         };
         // receive gg update
         let gamegrid_msg = GG_SIGNAL.wait().await;
@@ -93,9 +93,9 @@ async fn animate_ledstrip() {
         // do stuff with
         (0..NUM_LEDS).for_each(|led| {
             if gamegrid_msg.game_grid_update[led] {
-                ledstrip_msg.led_strip_update[led] = RGB8::from((15, 0, 15));
+                ledstrip_msg.led_strip_update[led] = ColorRGB::from((15, 0, 15));
             } else {
-                ledstrip_msg.led_strip_update[led] = RGB8::from((0, 0, 15));
+                ledstrip_msg.led_strip_update[led] = ColorRGB::from((0, 0, 15));
             }
         });
         //signal light ledstrip
