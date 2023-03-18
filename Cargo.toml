@@ -16,7 +16,8 @@ embassy-time = { version = "0.1.0", git = "https://github.com/embassy-rs/embassy
 embassy-rp = { version = "0.1.0", git = "https://github.com/embassy-rs/embassy", features = ["defmt", "unstable-traits", "nightly", "unstable-pac", "time-driver", "pio"] }
 embassy-sync = { version = "0.1.0", git = "https://github.com/embassy-rs/embassy"}
 rand_core = "0.6.4"
-smart-leds = "0.3.0"
+cichlid = { version = "0.2.1", git = "https://github.com/sfleischman105/cichlid", features = ["no-std"]}
+
 pio-proc = "0.2"
 pio = "0.2.1"
 

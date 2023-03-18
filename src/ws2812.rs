@@ -4,7 +4,8 @@ use embassy_rp::pio::{
 };
 use embassy_rp::pio_instr_util;
 use embassy_rp::relocate::RelocatedProgram;
-use smart_leds::RGB8;
+use cichlid::ColorRGB;
+
 use {defmt_rtt as _, panic_probe as _};
 
 /// The number of LEDs in the strip
@@ -103,7 +104,7 @@ impl<P: PioInstance, S: SmInstance> Ws2812<P, S> {
     /// # Arguments
     ///
     /// * `colors`: The sequence of RGB colors to write.
-    pub async fn write(&mut self, colors: &[RGB8]) {
+    pub async fn write(&mut self, colors: &[ColorRGB]) {
         for color in colors {
             let word =
                 (u32::from(color.g) << 24) | (u32::from(color.r) << 16) | (u32::from(color.b) << 8);

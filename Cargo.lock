@@ -104,12 +104,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
-name = "bytemuck"
-version = "1.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17febce684fd15d89027105661fec94afb475cb995fbc59d2865198446ba2eea"
-
-[[package]]
 name = "byteorder"
 version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -120,6 +114,11 @@ name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "cichlid"
+version = "0.2.1"
+source = "git+https://github.com/sfleischman105/cichlid#cf123dfcb57c2f9abf01d9cf1ba0a031d4cd25ee"
 
 [[package]]
 name = "codespan-reporting"
@@ -346,6 +345,7 @@ source = "git+https://github.com/embassy-rs/embassy#18fe398673f55b07159d01a23091
 name = "embassy-gollight"
 version = "0.1.0"
 dependencies = [
+ "cichlid",
  "cortex-m",
  "cortex-m-rt",
  "defmt",
@@ -358,7 +358,6 @@ dependencies = [
  "pio",
  "pio-proc",
  "rand_core",
- "smart-leds",
 ]
 
 [[package]]
@@ -998,15 +997,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "456c603be3e8d448b072f410900c09faf164fbce2d480456f50eea6e25f9c848"
 
 [[package]]
-name = "rgb"
-version = "0.8.36"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20ec2d3e3fc7a92ced357df9cebd5a10b6fb2aa1ee797bf7e9ce2f17dffc8f59"
-dependencies = [
- "bytemuck",
-]
-
-[[package]]
 name = "rp2040-pac2"
 version = "0.1.0"
 source = "git+https://github.com/embassy-rs/rp2040-pac2?rev=017e3c9007b2d3b6965f0d85b5bf8ce3fa6d7364#017e3c9007b2d3b6965f0d85b5bf8ce3fa6d7364"
@@ -1077,24 +1067,6 @@ name = "smallvec"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
-
-[[package]]
-name = "smart-leds"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38dd45fa275f70b4110eac5f5182611ad384f88bb22b68b9a9c3cafd7015290b"
-dependencies = [
- "smart-leds-trait",
-]
-
-[[package]]
-name = "smart-leds-trait"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebf6d833fa93f16a1c1874e62c2aebe8567e5bdd436d59bf543ed258b6f7a8e3"
-dependencies = [
- "rgb",
-]
 
 [[package]]
 name = "spin"
