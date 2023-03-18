@@ -7,13 +7,30 @@ use embassy_rp::relocate::RelocatedProgram;
 use smart_leds::RGB8;
 use {defmt_rtt as _, panic_probe as _};
 
+/// The number of LEDs in the strip
 pub(crate) const NUM_LEDS: usize = 136;
 
+/// Represents a RP2040 PIO controlled WS2812 LED strip
 pub struct Ws2812<P: PioInstance, S: SmInstance> {
     sm: PioStateMachineInstance<P, S>,
 }
 
 impl<P: PioInstance, S: SmInstance> Ws2812<P, S> {
+    /// Creates a new WS2812 LED strip.
+    ///
+    /// # Arguments
+    ///
+    /// * `sm`: The PIO state machine to use for controlling the strip.
+    /// * `pin`: The GPIO pin that the strip is connected to.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let p = embassy_rp::init(Default::default());
+    /// let (_pio0, sm0, _sm1, _sm2, _sm3) = p.PIO0.split();
+    /// // Create Ledstrip
+    /// let ws2812 = Ws2812::new(sm0, p.PIN_8.degrade());
+    /// ```
     pub fn new(mut sm: PioStateMachineInstance<P, S>, pin: gpio::AnyPin) -> Self {
         // prepare the PIO program
         let side_set = pio::SideSet::new(false, 1, false);
@@ -81,6 +98,11 @@ impl<P: PioInstance, S: SmInstance> Ws2812<P, S> {
         Self { sm }
     }
 
+    /// This method writes the provided sequence of RGB colors to the LED strip.
+    ///
+    /// # Arguments
+    ///
+    /// * `colors`: The sequence of RGB colors to write.
     pub async fn write(&mut self, colors: &[RGB8]) {
         for color in colors {
             let word =
@@ -109,19 +131,4 @@ impl<P: PioInstance, S: SmInstance> Ws2812<P, S> {
         // The better path forward would be to introduce an async version of the SmartLedsWrite trait.
         // The downside being the function color problem meaning that anything using said trait also needs to be async.
     }
-}
-
-/// Input a value 0 to 255 to get a color value
-/// The colours are a transition r - g - b - back to r.
-pub fn wheel(mut wheel_pos: u8) -> RGB8 {
-    wheel_pos = 255 - wheel_pos;
-    if wheel_pos < 85 {
-        return (255 - wheel_pos * 3, 0, wheel_pos * 3).into();
-    }
-    if wheel_pos < 170 {
-        wheel_pos -= 85;
-        return (0, wheel_pos * 3, 255 - wheel_pos * 3).into();
-    }
-    wheel_pos -= 170;
-    (wheel_pos * 3, 255 - wheel_pos * 3, 0).into()
 }
