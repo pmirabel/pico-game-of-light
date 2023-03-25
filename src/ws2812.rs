@@ -1,10 +1,10 @@
+use cichlid::ColorRGB;
 use embassy_rp::gpio::{self};
 use embassy_rp::pio::{
     FifoJoin, PioInstance, PioStateMachine, PioStateMachineInstance, ShiftDirection, SmInstance,
 };
 use embassy_rp::pio_instr_util;
 use embassy_rp::relocate::RelocatedProgram;
-use cichlid::ColorRGB;
 
 use {defmt_rtt as _, panic_probe as _};
 

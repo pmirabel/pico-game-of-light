@@ -342,25 +342,6 @@ version = "0.1.0"
 source = "git+https://github.com/embassy-rs/embassy#18fe398673f55b07159d01a230910bb9689c1525"
 
 [[package]]
-name = "embassy-gollight"
-version = "0.1.0"
-dependencies = [
- "cichlid",
- "cortex-m",
- "cortex-m-rt",
- "defmt",
- "defmt-rtt",
- "embassy-executor",
- "embassy-rp",
- "embassy-sync",
- "embassy-time",
- "panic-probe",
- "pio",
- "pio-proc",
- "rand_core",
-]
-
-[[package]]
 name = "embassy-hal-common"
 version = "0.1.0"
 source = "git+https://github.com/embassy-rs/embassy#18fe398673f55b07159d01a230910bb9689c1525"
@@ -854,6 +835,25 @@ name = "pico-args"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db8bcd96cb740d03149cbad5518db9fd87126a10ab519c011893b1754134c468"
+
+[[package]]
+name = "pico-game-of-light"
+version = "0.1.0"
+dependencies = [
+ "cichlid",
+ "cortex-m",
+ "cortex-m-rt",
+ "defmt",
+ "defmt-rtt",
+ "embassy-executor",
+ "embassy-rp",
+ "embassy-sync",
+ "embassy-time",
+ "panic-probe",
+ "pio",
+ "pio-proc",
+ "rand_core",
+]
 
 [[package]]
 name = "pin-project-lite"
