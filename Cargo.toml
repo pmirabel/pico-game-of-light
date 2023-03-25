@@ -1,5 +1,5 @@
 [package]
-name = "embassy-gollight"
+name = "pico-game-of-light"
 version = "0.1.0"
 edition = "2021"
 
