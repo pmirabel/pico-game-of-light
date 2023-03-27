@@ -5,21 +5,18 @@
 use defmt::*;
 use embassy_executor::Spawner;
 use embassy_rp::gpio::Pin;
-use embassy_rp::pio::PioInstanceBase;
-use embassy_rp::pio::PioPeripheral;
-use embassy_rp::pio::SmInstanceBase;
+use embassy_rp::pio::{PioInstanceBase, PioPeripheral, SmInstanceBase};
 use embassy_time::{Duration, Timer};
 use {defmt_rtt as _, panic_probe as _};
+
 mod game_grid;
 mod ledstrip_effect;
 mod ws2812;
-use {defmt_rtt as _, panic_probe as _};
 
 use cichlid::ColorRGB;
-use ledstrip_effect::LedstripColors;
-use ledstrip_effect::TRANSITION_STEPS;
 
-use crate::ws2812::*;
+use crate::ws2812::{Ws2812, NUM_LEDS};
+use ledstrip_effect::{LedstripColors, TRANSITION_STEPS};
 
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::signal::Signal;
@@ -35,7 +32,7 @@ struct LedStripMessage {
 static GG_SIGNAL: Signal<CriticalSectionRawMutex, GameGridMessage> = Signal::new();
 static LED_SIGNAL: Signal<CriticalSectionRawMutex, LedStripMessage> = Signal::new();
 
-pub(crate) const LEDSTRIP_REFRESH_DELAY: Duration = Duration::from_millis(10);
+pub(crate) const LEDSTRIP_REFRESH_DELAY: Duration = Duration::from_millis(20);
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -49,11 +46,19 @@ async fn main(spawner: Spawner) {
 
     // ---- ----"LOOP"---- ---- ----
     // ---- ---- ---- ---- ---- ----
-    unwrap!(spawner.spawn(refresh_gol_board(Duration::from_millis(10000))));
+    unwrap!(spawner.spawn(refresh_gol_board(Duration::from_millis(5000))));
     unwrap!(spawner.spawn(animate_ledstrip()));
     unwrap!(spawner.spawn(refresh_ledstrip(ws2812)));
 }
 
+/// Updates a Game of Life board at a given interval and signals the changes to the embassy_sync signal `GG_SIGNAL` as a `GameGridMessage`.
+/// This function creates a new Game of Life boardgame and randomizes it with a 42% chance of each cell being alive.
+/// If the boardgame does not evolve after an update, the board is randomized again.
+///
+/// # Arguments
+///
+/// * `interval`: A `Duration` value representing the time interval between updates.
+///
 #[embassy_executor::task]
 async fn refresh_gol_board(interval: Duration) {
     // Create Game of life boardgame
@@ -84,10 +89,15 @@ async fn refresh_gol_board(interval: Duration) {
     }
 }
 
+/// Animates a LED strip based on updates to a game grid.
+///
+/// This function listens for updates via a signal receiver carrying GameGridMessage.
+/// It animates the LED strip based on the difference between the current and previous game grid states.
+/// The `LedstripColors` struct is used to generate different colors for each step of the animation, creating a dynamic and lively
+/// effect on the LED strip.
 #[embassy_executor::task]
 async fn animate_ledstrip() {
     let ledstrip_colors = LedstripColors::new();
-    // plumbing
     let mut gamegrid_msg: GameGridMessage = GameGridMessage {
         game_grid_update: [false; NUM_LEDS],
     };
@@ -102,47 +112,53 @@ async fn animate_ledstrip() {
         let tmp: [u8; NUM_LEDS] = gamegrid_msg.game_grid_update.map(|v| if v { 1 } else { 0 });
         debug!("RECEIVED update of game grid:\n\t\t{}", tmp);
 
-        while !GG_SIGNAL.signaled() {
-            // compute new colors
-            for cpt in 0..TRANSITION_STEPS {
-                let mut ledstrip_msg: LedStripMessage = LedStripMessage {
-                    led_strip_update: [ColorRGB::default(); NUM_LEDS],
-                };
-                for led in 0..NUM_LEDS {
-                    match (
-                        prev_gamegrid_msg.game_grid_update[led],
-                        gamegrid_msg.game_grid_update[led],
-                    ) {
-                        // Alive --> Alive
-                        (true, true) => {
-                            ledstrip_msg.led_strip_update[led] =
-                                ledstrip_colors.get_color_at(cpt).current_still_alive;
-                        }
-                        // Alive --> Dead
-                        (true, false) => {
-                            ledstrip_msg.led_strip_update[led] =
-                                ledstrip_colors.get_color_at(cpt).current_alive_to_dead;
-                        }
-                        // Dead --> Alive
-                        (false, true) => {
-                            ledstrip_msg.led_strip_update[led] =
-                                ledstrip_colors.get_color_at(cpt).current_dead_to_alive;
-                        }
-                        // Dead --> Dead
-                        (false, false) => {
-                            ledstrip_msg.led_strip_update[led] =
-                                ledstrip_colors.get_color_at(cpt).current_still_dead;
-                        }
+        // compute new colors
+        for cpt in 0..TRANSITION_STEPS {
+            let mut ledstrip_msg: LedStripMessage = LedStripMessage {
+                led_strip_update: [ColorRGB::default(); NUM_LEDS],
+            };
+            for led in 0..NUM_LEDS {
+                match (
+                    prev_gamegrid_msg.game_grid_update[led],
+                    gamegrid_msg.game_grid_update[led],
+                ) {
+                    // Alive --> Alive
+                    (true, true) => {
+                        ledstrip_msg.led_strip_update[led] =
+                            ledstrip_colors.get_color_at(cpt).current_still_alive;
+                    }
+                    // Alive --> Dead
+                    (true, false) => {
+                        ledstrip_msg.led_strip_update[led] =
+                            ledstrip_colors.get_color_at(cpt).current_alive_to_dead;
+                    }
+                    // Dead --> Alive
+                    (false, true) => {
+                        ledstrip_msg.led_strip_update[led] =
+                            ledstrip_colors.get_color_at(cpt).current_dead_to_alive;
+                    }
+                    // Dead --> Dead
+                    (false, false) => {
+                        ledstrip_msg.led_strip_update[led] =
+                            ledstrip_colors.get_color_at(cpt).current_still_dead;
                     }
                 }
-                //signal light ledstrip
-                LED_SIGNAL.signal(ledstrip_msg);
-                Timer::after(LEDSTRIP_REFRESH_DELAY).await;
             }
+            //signal light ledstrip
+            LED_SIGNAL.signal(ledstrip_msg);
+            Timer::after(LEDSTRIP_REFRESH_DELAY).await;
         }
     }
 }
 
+/// Refreshes the ws2812 LED strip with the latest color values received through the `LED_SIGNAL` embassy_sync signal.
+///
+/// This function continuously waits for new color values to be sent through the `LED_SIGNAL` broadcast channel.
+/// Once a new set of color values is received, the function lights up the LED strip with those values.
+///
+/// # Arguments
+///
+/// * `ws2812`: A `Ws2812` instance representing the LED strip.
 #[embassy_executor::task]
 async fn refresh_ledstrip(mut ws2812: Ws2812<PioInstanceBase<0>, SmInstanceBase<0>>) {
     // Loop forever making RGB values and pushing them out to the WS2812.
@@ -151,7 +167,5 @@ async fn refresh_ledstrip(mut ws2812: Ws2812<PioInstanceBase<0>, SmInstanceBase<
         ws2812
             .write(&LED_SIGNAL.wait().await.led_strip_update)
             .await;
-        //TODO: define minimal sleep value
-        // Timer::after(Duration::from_millis(500)).await;
     }
 }
