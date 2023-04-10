@@ -1,17 +1,10 @@
-# pico-game-of-light
+# pico-game-of-light : Mathematically alive lighting
 
-https://github.com/sfleischman105/cichlid
-https://github.com/phip1611/ws2818-rgb-led-spi-driver/blob/main/examples/src/bin/strip-moving-lights.rs
-https://github.com/jamesmunns/choreographer/blob/main/Cargo.toml
-https://docs.rs/colorgrad/latest/colorgrad/index.html
+:warning: :construction: Toy project to play with embassy-rs and rust on raspberry-pi Pico, use with appropriate care.
 
-**:warning: :construction: W.I.P**
+![nice_gif_here](doc/home_gif.gif)
 
-Trully lively lighting atmosphere. Bonus: godmode
-
-![](doc/home_gif.gif)
-
-- [pico-game-of-light](#pico-game-of-light)
+- [pico-game-of-light : Mathematically alive lighting](#pico-game-of-light--mathematically-alive-lighting)
   - [1.2. Hardware](#12-hardware)
     - [1.2.1. BOM (bill of material)](#121-bom-bill-of-material)
     - [1.2.2. Schematics](#122-schematics)
@@ -25,7 +18,7 @@ Trully lively lighting atmosphere. Bonus: godmode
 ### 1.2.1. BOM (bill of material)
 
 - MCU : [Raspbery pi pico](https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html)
-- Debug probe [(another raspbery pi pico)](https://github.com/rp-rs/rp2040-project-template/blob/main/debug_probes.md#raspberry-pi-pico)
+- Debug probe [(another Pico)](https://github.com/rp-rs/rp2040-project-template/blob/main/debug_probes.md#raspberry-pi-pico)
 - LEDSTRIP: [Adafruit neopixel ledstrip (144 LEDs)](https://www.adafruit.com/product/1138)
 - LLV: logic level converter 3.3 <-> 5V (no name)
 - 100 ùF capacitor
@@ -42,15 +35,12 @@ Trully lively lighting atmosphere. Bonus: godmode
                       │    │           │
                       │  ┌─┤GND     IO?│
                       │  │ └─────────┬─┘
-                      │  │           │
   ┌─────┐   ┌────┐    │  │ ┌─────────┴─┐
   │     ├─>─┤ C1 ├──┬─┴──┼─┤   NONAME  │
   │ +5V │   │100 │  │    │ │ TTL LLV   │
   │jack ├─>─┤ùF  ├──┼───┬┴─┤ 3.3 -> 5V │
   └─────┘   └────┘  │   │  └─────────┬─┘
-                    │   │            │
                     │   │   ┌────────┘
-                    │   │   │
                   ┌─┴─┬─┴─┬─┴─┐
                   │+5V│GND│Din│
         ┌─┬───────┼───┼───┼───┼───────┐
@@ -64,8 +54,6 @@ Trully lively lighting atmosphere. Bonus: godmode
         │▼├┼┼┼┼┼┼┼│8*17│┼┼┼┼┼┼┼┼┼┼┼┼│ │
         │ │┼┼┼┼┼┼┼┼────┼┼┼┼┼┼┼┼┼┼┼┼┼│ │
         └─┴─────────────────────────┴─┘
-
-
 ```
 
 ## 1.3. Software
@@ -99,11 +87,9 @@ graph TD
 ### 1.3.3. Notes for future me
 
 - The boilerplate to develop on RP2040 is here : <https://github.com/SupImDos/embassy-rp-skeleton>
-- Use a second Pico as probe : <https://github.com/SupImDos/embassy-rp-skeleton#hardware-setup>
+- Section about how to use a second Pico as probe : <https://github.com/SupImDos/embassy-rp-skeleton#hardware-setup>
 - Write tests. See below discussion about how to ...
 - Use nightly : `rustup override set nightly`
-
-**Discussion about tests**
 
 - Me
     >...would you tell me how do you implement test (mainly unit testing, but why not integ too) in your embassy based projects?
